@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#fafafa">
+<title>Établir les bonnes attentes - OLA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Branding repris de ola-ai.ca : fond blanc cassé, noir, gris, Geist, cartes arrondies. Une seule carte noire par diapo au plus. */
+:root{
+  --bg:#fafafa; --card:#f5f5f5; --white:#ffffff; --fg:#0a0a0a; --fg-2:#555555;
+  --fg-60:rgba(10,10,10,.6); --fg-40:rgba(10,10,10,.4); --fg-12:rgba(10,10,10,.12);
+  --border:rgba(215,215,215,.6); --border-solid:#d7d7d7;
+  --inv-60:rgba(250,250,250,.7);
+  --sans:"Geist","Geist Fallback",-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;
+  --mono:"Geist Mono","Geist Mono Fallback",ui-monospace,Menlo,monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+  color-scheme:light;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.55;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;-webkit-text-size-adjust:100%;overscroll-behavior:none}
+::selection{background:var(--fg);color:var(--bg)}
+
+/* Diapos empilées : seule l'active est visible (fluide sur cellulaire) */
+.deck{position:fixed;inset:0;overflow:hidden;touch-action:pan-y}
+.slide{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;scrollbar-width:none;
+  visibility:hidden;opacity:0;transform:translate3d(28px,0,0);pointer-events:none;
+  transition:opacity .3s ease,transform .3s var(--ease),visibility 0s linear .3s}
+.slide::-webkit-scrollbar{display:none}
+.slide.back{transform:translate3d(-28px,0,0)}
+.slide.active{visibility:visible;opacity:1;transform:none;pointer-events:auto;transition:opacity .3s ease,transform .3s var(--ease),visibility 0s}
+.inner{min-height:100%;max-width:1040px;margin:0 auto;padding:max(7vh,2.5rem) 1.25rem max(18vh,8.5rem);display:flex;flex-direction:column;justify-content:center;gap:28px}
+@media (min-width:768px){.inner{padding:max(8vh,3rem) 2.5rem max(18vh,9rem);gap:36px}}
+
+/* En-têtes */
+.logo{height:72px;width:auto;align-self:center;display:block}
+.pill-tag{align-self:flex-start;display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);background:var(--white);border-radius:999px;padding:6px 14px;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase}
+.pill-tag i{width:6px;height:6px;border-radius:50%;background:var(--fg);flex:none}
+.head{display:flex;flex-direction:column;gap:18px}
+h1,h2{font-weight:600;letter-spacing:-.03em;line-height:1.05;text-wrap:balance}
+h1{font-size:clamp(2.5rem,7vw,4.75rem)}
+h2{font-size:clamp(2rem,5vw,3.5rem)}
+.hl{color:var(--fg-2)}
+.sub{font-size:clamp(1.0625rem,1.8vw,1.3rem);color:var(--fg-2);max-width:44rem}
+.center{text-align:center;align-items:center}
+.center .pill-tag{align-self:center}
+.center .sub{margin:0 auto}
+
+/* Carte de texte */
+.quote{background:var(--white);border:1px solid var(--border);border-radius:18px;padding:28px;display:flex;flex-direction:column;gap:14px;font-size:clamp(1.0625rem,1.6vw,1.25rem);line-height:1.65}
+.quote strong{font-weight:600}
+.quote.c{text-align:center}
+
+/* Carte noire : l'accent de la diapo */
+.dark{background:var(--fg);color:var(--bg);border-radius:18px;padding:28px;display:flex;flex-direction:column;gap:12px}
+.dark h3{font-size:clamp(1.25rem,2.2vw,1.6rem);font-weight:600;letter-spacing:-.02em;display:flex;align-items:center;gap:10px}
+.dark h3 svg{width:22px;height:22px;flex:none}
+.dark p{color:var(--inv-60);font-size:clamp(1rem,1.5vw,1.125rem);line-height:1.7}
+.dark p strong{color:var(--bg);font-weight:600}
+
+/* Grilles de cartes */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.grid.two{grid-template-columns:minmax(0,1fr)}
+@media (min-width:768px){.grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.stack .hl{display:block}
+.card{background:var(--white);border:1px solid var(--border);border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.badge{width:36px;height:36px;border-radius:10px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:14px;font-weight:500;flex:none}
+.badge svg{width:18px;height:18px}
+.card h3{font-size:1.15rem;font-weight:600;letter-spacing:-.01em;line-height:1.3}
+.card p{font-size:.975rem;color:var(--fg-60);line-height:1.65}
+.card p strong{color:var(--fg);font-weight:600}
+.card .sol{margin-top:2px;padding-top:12px;border-top:1px solid var(--border)}
+.card.row{flex-direction:row;gap:16px;align-items:flex-start}
+.card.row > div{display:flex;flex-direction:column;gap:6px;min-width:0}
+.card q{quotes:"«\00a0" "\00a0»";font-size:1.1rem;font-weight:600;line-height:1.35}
+
+/* Statistiques */
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (min-width:768px){.stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}}
+.stat{background:var(--white);border:1px solid var(--border);border-radius:18px;padding:18px;min-width:0;display:flex;flex-direction:column;gap:6px}
+.stat b{font-size:clamp(2.25rem,4.5vw,3rem);font-weight:600;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
+.stat span{font-size:.95rem;color:var(--fg-60);line-height:1.5}
+
+/* Échéancier vertical */
+.timeline{list-style:none;display:flex;flex-direction:column;position:relative;padding-left:44px}
+.timeline::before{content:"";position:absolute;left:15px;top:18px;bottom:18px;width:1px;background:var(--border-solid)}
+.timeline li{position:relative;padding-bottom:14px}
+.timeline li:last-child{padding-bottom:0}
+.timeline .num{position:absolute;left:-44px;top:20px;width:31px;height:31px;border-radius:50%;background:var(--fg);color:var(--bg);font-family:var(--mono);font-size:13px;display:flex;align-items:center;justify-content:center}
+.timeline .card{gap:6px}
+.timeline .when{font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-40)}
+
+/* Lignes de délais dans la carte noire */
+.slas{display:flex;flex-direction:column}
+.slas div{display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-top:1px solid rgba(250,250,250,.15);font-size:1rem;flex-wrap:wrap}
+.slas div:first-child{border-top:0}
+.slas dt{font-weight:600}
+.slas dd{color:var(--inv-60)}
+
+/* Navigation */
+.bar{position:fixed;left:0;right:0;margin:0 auto;bottom:max(1rem,env(safe-area-inset-bottom));z-index:100;width:calc(100% - 2rem);max-width:520px;
+  display:flex;align-items:center;gap:8px;padding:8px;background:var(--white);border:1px solid var(--border);border-radius:999px;box-shadow:0 8px 32px rgba(10,10,10,.06)}
+.prev{width:44px;height:44px;flex:none;border-radius:50%;border:0;background:transparent;color:var(--fg);cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
+.prev:hover{background:var(--card)}
+.prev:disabled{opacity:.25;cursor:default;background:transparent}
+.prev svg,.next svg{width:16px;height:16px}
+.mid{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px}
+.dots{display:flex;gap:5px;align-items:center}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--fg-12);border:0;padding:0;cursor:pointer;transition:width .3s var(--ease),background .3s;-webkit-tap-highlight-color:transparent}
+.dot.active{background:var(--fg);width:18px;border-radius:3px}
+.counter{font-family:var(--mono);font-size:11px;color:var(--fg-60);white-space:nowrap}
+.next{flex:none;display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 20px;border-radius:999px;border:0;background:var(--fg);color:var(--bg);font:inherit;font-size:15px;font-weight:500;cursor:pointer;text-decoration:none;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.next:hover{opacity:.88}
+.next:disabled{opacity:.25;cursor:default}
+.prev:focus-visible,.next:focus-visible,.dot:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+
+@media (max-width:480px){
+  .quote,.dark{padding:22px}
+  .card{padding:20px}
+  .next{padding:0 16px}
+}
+@media (prefers-reduced-motion:reduce){
+  .slide,.slide.back{transform:none;transition-duration:.01ms}
+}
+</style>
+</head>
+<body>
+
+<main class="deck" id="deck">
+
+  <!-- 0 : Bienvenue -->
+  <section class="slide active" aria-label="Bienvenue">
+    <div class="inner center">
+      <img class="logo" src="data:image/webp;base64,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" alt="OLA">
+      <div class="head center">
+        <span class="pill-tag"><i></i>Avant de commencer</span>
+        <h1>Établir les <span class="hl">bonnes attentes</span></h1>
+        <p class="sub">Votre succès avec OLA dépend autant de votre implication que de notre accompagnement. Comprenons ensemble ce voyage transformateur.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 1 : Notre engagement -->
+  <section class="slide" aria-label="Notre engagement">
+    <div class="inner">
+      <div class="head">
+        <span class="pill-tag"><i></i>Notre engagement</span>
+        <h2>Notre <span class="hl">engagement</span> envers vous</h2>
+      </div>
+      <div class="quote">
+        <p>Pour commencer, nous souhaitons travailler avec des courtiers <strong>motivés, déterminés et désireux</strong> d'apporter un réel changement dans leur carrière en utilisant un outil aussi puissant qu'OLA.</p>
+        <p>Nous savons que c'est une <strong>décision importante</strong> pour vous, car une fois que vous utilisez une plateforme de gestion, vous ne la changez pas comme une paire de bas.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 : Ce que nous offrons -->
+  <section class="slide" aria-label="Ce que nous offrons">
+    <div class="inner">
+      <div class="head">
+        <span class="pill-tag"><i></i>Notre engagement</span>
+        <h2>Ce que <span class="hl">nous offrons</span></h2>
+      </div>
+      <div class="grid">
+        <article class="card">
+          <span class="badge"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="7" r="3"/><circle cx="14" cy="8" r="2.4"/><path d="M2 17c0-2.8 2.2-5 5-5s5 2.2 5 5M12.5 12.6c.5-.2 1-.3 1.5-.3 2.2 0 4 1.8 4 4"/></svg></span>
+          <h3>Support personnalisé</h3>
+          <p>Nous prenons le temps d'offrir un support personnalisé pour construire et connecter tout ensemble avec vous, main dans la main.</p>
+        </article>
+        <article class="card">
+          <span class="badge"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 2L4 11h5l-1 7 7-9h-5l1-7z"/></svg></span>
+          <h3>Automatisation intelligente</h3>
+          <p>Nous automatisons les processus cruciaux pour vous faire économiser du temps, même en utilisant OLA au strict minimum.</p>
+        </article>
+        <article class="card">
+          <span class="badge"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="2.5" width="6" height="6" rx="1.5"/><rect x="11.5" y="2.5" width="6" height="6" rx="1.5"/><rect x="2.5" y="11.5" width="6" height="6" rx="1.5"/><rect x="11.5" y="11.5" width="6" height="6" rx="1.5"/></svg></span>
+          <h3>Framework complet</h3>
+          <p>Un système d'automatisations et de processus que nous personnalisons spécifiquement pour votre façon de travailler.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 : Votre rôle -->
+  <section class="slide" aria-label="Votre rôle">
+    <div class="inner">
+      <div class="head">
+        <span class="pill-tag"><i></i>Votre rôle</span>
+        <h2>Votre <span class="hl">rôle</span> dans cette transformation</h2>
+      </div>
+      <div class="dark">
+        <h3><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="10" cy="10" r="8.25"/><path d="M10 6v4.5"/><circle cx="10" cy="13.75" r=".6" fill="currentColor"/></svg>Ce n'est pas une baguette magique</h3>
+        <p>Ce n'est pas parce que vous achetez une nouvelle paire de souliers que vous serez capable de courir un marathon en moins de 3 heures. Ça demande de l'entraînement et du dévouement.</p>
+        <p>Vous ne deviendrez pas multimillionnaire avec cet outil sans un <strong>travail acharné</strong>.</p>
+        <p>Par contre, le potentiel est bel et bien là et les ressources pour vous aider aussi.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 : Les clés de votre succès -->
+  <section class="slide" aria-label="Les clés de votre succès">
+    <div class="inner">
+      <div class="head">
+        <span class="pill-tag"><i></i>Votre rôle</span>
+        <h2>Les clés de <span class="hl">votre succès</span></h2>
+      </div>
+      <div class="grid two">
+        <article class="card row"><span class="badge">1</span><div><h3>Votre dévouement</h3><p>Automatiser vos tâches, exploiter les ressources disponibles, poser des questions, rester organisé, utiliser régulièrement l'outil.</p></div></article>
+        <article class="card row"><span class="badge">2</span><div><h3>Développer votre base</h3><p>La motivation à développer votre base de données et à maintenir une communication authentique avec vos clients.</p></div></article>
+        <article class="card row"><span class="badge">3</span><div><h3>Phase d'adaptation</h3><p>La nouveauté peut être intimidante. Une phase d'adaptation est nécessaire, mais nous sommes convaincus que vous ne le regretterez pas.</p></div></article>
+        <article class="card row"><span class="badge">4</span><div><h3>Poser des questions</h3><p>N'hésitez surtout pas à nous poser vos questions à n'importe quelle étape. Votre satisfaction est notre priorité absolue.</p></div></article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 : Anticiper les défis -->
+  <section class="slide" aria-label="Anticiper les défis">
+    <div class="inner">
+      <div class="head">
+        <span class="pill-tag"><i></i>Ensemble</span>
+        <h2>Anticiper les <span class="hl">défis</span></h2>
+        <p class="sub">Nous connaissons les obstacles, et comment les surmonter ensemble.</p>
+      </div>
+      <div class="grid two">
+        <article class="card"><q>Je n'ai pas le temps d'apprendre</q><p class="sol"><strong>Notre solution :</strong> 7 à 8 sessions de 1 h à 1 h 30, vidéos aide-mémoire, et nous configurons 90 % pour vous dès le départ.</p></article>
+        <article class="card"><q>C'est trop technique pour moi</q><p class="sol"><strong>Notre solution :</strong> interface simplifiée, support en français 7 j/7, et nous prenons en charge toute la complexité technique.</p></article>
+        <article class="card"><q>Et si je ne vois pas de résultats?</q><p class="sol"><strong>Notre solution :</strong> suivi hebdomadaire, ajustements en temps réel, et engagement sur des résultats concrets dès le premier mois.</p></article>
+        <article class="card"><q>Je suis habitué à mon ancienne méthode</q><p class="sol"><strong>Notre solution :</strong> migration douce, transition par étapes, et nous adaptons OLA à VOS habitudes (pas l'inverse).</p></article>
+      </div>
+      <div class="quote c"><p><strong>95 % de nos clients</strong> qui exprimaient ces inquiétudes au départ sont maintenant nos plus grands ambassadeurs. Vos préoccupations sont légitimes, et nous les prenons au sérieux.</p></div>
+    </div>
+  </section>
+
+  <!-- 6 : L'IA en chiffres -->
+  <section class="slide" aria-label="L'IA transforme l'immobilier">
+    <div class="inner">
+      <div class="head">
+        <span class="pill-tag"><i></i>Le marché</span>
+        <h2>L'IA transforme <span class="hl">l'immobilier</span></h2>
+      </div>
+      <div class="stats">
+        <div class="stat"><b>87 %</b><span>des leaders immobiliers prévoient d'augmenter leurs investissements en IA en 2025</span></div>
+        <div class="stat"><b>73 %</b><span>des transactions immobilières impliqueront l'IA d'ici 2027</span></div>
+        <div class="stat"><b>45 %</b><span>d'augmentation de productivité pour les courtiers utilisant l'IA</span></div>
+        <div class="stat"><b>65 %</b><span>des acheteurs préfèrent les courtiers équipés d'outils d'IA</span></div>
+        <div class="stat"><b>92 %</b><span>des « early adopters » rapportent un avantage significatif sur la concurrence</span></div>
+        <div class="stat"><b>60 %</b><span>de réduction du temps passé sur les tâches administratives</span></div>
+      </div>
+      <div class="dark"><p style="font-size:clamp(1.0625rem,1.8vw,1.3rem);text-align:center">La vraie question est simple : <strong>serez-vous parmi les premiers à en bénéficier</strong>, ou laisserez-vous vos concurrents prendre de l'avance?</p></div>
+    </div>
+  </section>
+
+  <!-- 7 : Notre accompagnement -->
+  <section class="slide" aria-label="Notre accompagnement">
+    <div class="inner">
+      <div class="head">
+        <span class="pill-tag"><i></i>Accompagnement</span>
+        <h2>Notre <span class="hl">accompagnement</span></h2>
+      </div>
+      <ol class="timeline">
+        <li><span class="num">1</span><div class="card"><span class="when">Premier mois</span><h3>Construction</h3><p>2 appels par semaine pour bâtir votre compte, fixer vos priorités et accélérer vos actions. Support direct par message disponible en tout temps.</p></div></li>
+        <li><span class="num">2</span><div class="card"><span class="when">Deuxième mois</span><h3>Optimisation</h3><p>1 appel par semaine pour les suivis, ajustements et optimisation. Nous affinons votre utilisation pour maximiser les résultats.</p></div></li>
+        <li><span class="num">3</span><div class="card"><span class="when">Troisième mois et plus</span><h3>Autonomie</h3><p>Appels hebdomadaires flexibles selon vos besoins. Accès aux ressources, formations enregistrées et support continu.</p></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- 8 : Disponibilité -->
+  <section class="slide" aria-label="Notre disponibilité">
+    <div class="inner">
+      <div class="head">
+        <span class="pill-tag"><i></i>Accompagnement</span>
+        <h2>Notre <span class="hl">disponibilité</span> pour vous</h2>
+        <p class="sub">Comment et quand nous joindre, en toute transparence.</p>
+      </div>
+      <div class="grid">
+        <article class="card">
+          <span class="badge"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5h14v9H8l-4 3v-3H3z"/></svg></span>
+          <h3>Support par message</h3>
+          <p><strong>Disponibilité :</strong> 7 j/7, réponse sous 2 h ouvrables<br><strong>Idéal pour :</strong> questions rapides, clarifications, petits ajustements</p>
+        </article>
+        <article class="card">
+          <span class="badge"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="14" height="13" rx="2"/><path d="M3 8h14M7 2.5v3M13 2.5v3"/></svg></span>
+          <h3>Appels programmés</h3>
+          <p><strong>Fréquence :</strong> 2 fois par semaine (mois 1), puis hebdomadaire<br><strong>Idéal pour :</strong> stratégie, formation, résolution de problèmes complexes</p>
+        </article>
+        <article class="card">
+          <span class="badge"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h3l1.5 4-2 1.2a9 9 0 0 0 4.3 4.3L13 10.5l4 1.5v3a2 2 0 0 1-2 2A13 13 0 0 1 3 5a2 2 0 0 1 2-2z"/></svg></span>
+          <h3>Support d'urgence</h3>
+          <p><strong>Disponibilité :</strong> téléphone direct pour urgences réelles<br><strong>Idéal pour :</strong> problèmes bloquants affectant vos transactions</p>
+        </article>
+      </div>
+      <div class="dark">
+        <h3>Notre engagement de temps de réponse</h3>
+        <dl class="slas">
+          <div><dt>Messages</dt><dd>Sous 2 h ouvrables (lun-ven 9 h-18 h), sous 4 h le week-end</dd></div>
+          <div><dt>Appels programmés</dt><dd>Confirmés 24 h à l'avance, toujours respectés</dd></div>
+          <div><dt>Urgences</dt><dd>Réponse immédiate pendant les heures d'affaires</dd></div>
+        </dl>
+      </div>
+      <div class="quote c"><p><strong>Promesse :</strong> vous ne serez JAMAIS laissé sans réponse. Si nous ne pouvons pas résoudre immédiatement, nous vous donnons un délai précis et nous le respectons.</p></div>
+    </div>
+  </section>
+
+  <!-- 9 : Rentabiliser -->
+  <section class="slide" aria-label="Rentabiliser rapidement">
+    <div class="inner">
+      <div class="head">
+        <span class="pill-tag"><i></i>Passer à l'action</span>
+        <h2>Rentabiliser <span class="hl">rapidement</span></h2>
+      </div>
+      <div class="grid two">
+        <article class="card row"><span class="badge">1</span><div><h3>Intensifier votre prospection</h3><p>Utilisez le temps gagné grâce à OLA pour intensifier votre prospection et générer plus d'opportunités.</p></div></article>
+        <article class="card row"><span class="badge">2</span><div><h3>Publicités automatisées</h3><p>Faites des publicités en ligne et automatisez le processus complet avec OLA pour une conversion optimale.</p></div></article>
+        <article class="card row"><span class="badge">3</span><div><h3>Présence sur les réseaux</h3><p>Augmentez votre présence et votre engagement sur les réseaux sociaux pour attirer plus de clients potentiels.</p></div></article>
+        <article class="card row"><span class="badge">4</span><div><h3>Programme de référencement</h3><p>Pour chaque référencement réussi avec OLA, vous obtenez <strong>1 mois GRATUIT</strong>. 1 référencement par mois = OLA gratuit pour l'année!</p></div></article>
+      </div>
+      <div class="dark">
+        <h3><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2l6.5 2.5V9c0 4-2.8 7.4-6.5 9-3.7-1.6-6.5-5-6.5-9V4.5z"/><path d="M7 10l2 2 4-4.5"/></svg>Protection de vos données</h3>
+        <p>Avec OLA, vos clients et toutes vos données restent <strong>100 % sous votre contrôle</strong>. Changez d'agence en toute sérénité : votre base de données vous suit partout.</p>
+        <p>Évitez les histoires d'horreur de courtiers qui ont perdu toutes leurs données en quittant leur agence. Votre patrimoine client est protégé.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 : Merci -->
+  <section class="slide" aria-label="Merci">
+    <div class="inner">
+      <img class="logo" src="data:image/webp;base64,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" alt="OLA">
+      <div class="head center">
+        <span class="pill-tag"><i></i>Merci</span>
+        <h2 class="stack">Merci de votre confiance. <span class="hl">On bâtit ça ensemble.</span></h2>
+      </div>
+      <div class="grid two">
+        <article class="card row"><span class="badge"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10.5l3 3 7-7.5"/></svg></span><div><h3>Notre engagement</h3><p>Support personnalisé, automatisations intelligentes et un système bâti sur mesure pour vous.</p></div></article>
+        <article class="card row"><span class="badge"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10.5l3 3 7-7.5"/></svg></span><div><h3>Votre rôle</h3><p>Utiliser l'outil régulièrement, développer votre base et poser vos questions sans hésiter.</p></div></article>
+        <article class="card row"><span class="badge"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10.5l3 3 7-7.5"/></svg></span><div><h3>Notre accompagnement</h3><p>2 appels par semaine le premier mois, 1 par semaine le deuxième, puis selon vos besoins.</p></div></article>
+        <article class="card row"><span class="badge"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10.5l3 3 7-7.5"/></svg></span><div><h3>Vos données</h3><p>Vos clients et votre base de données restent 100 % à vous, peu importe l'agence.</p></div></article>
+      </div>
+      <div class="dark">
+        <p style="font-size:clamp(1.0625rem,1.8vw,1.3rem);text-align:center">Les courtiers qui réussissent avec OLA ne sont pas ceux qui en savent le plus. Ce sont ceux qui s'y mettent un peu chaque semaine. <strong>Vous venez de faire le premier pas, et on est avec vous pour la suite.</strong></p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<nav class="bar" aria-label="Navigation">
+  <button type="button" class="prev" id="prev" aria-label="Précédent" disabled>
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3.5L5.5 8l4.5 4.5"/></svg>
+  </button>
+  <div class="mid">
+    <div class="dots" id="dots"></div>
+    <span class="counter" id="counter">01 / 10</span>
+  </div>
+  <button type="button" class="next" id="next">
+    <span id="nextLabel">Commencer</span>
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M8.5 3.5L13 8l-4.5 4.5"/></svg>
+  </button>
+</nav>
+
+<script>
+  const deck = document.getElementById('deck');
+  const slides = document.querySelectorAll('.slide');
+  const prevBtn = document.getElementById('prev');
+  const nextBtn = document.getElementById('next');
+  const nextLabel = document.getElementById('nextLabel');
+  const counter = document.getElementById('counter');
+  const dotsBox = document.getElementById('dots');
+  const total = slides.length;
+  let current = 0;
+  const pad = n => String(n).padStart(2, '0');
+
+  slides.forEach((s, i) => {
+    const d = document.createElement('button');
+    d.type = 'button'; d.className = 'dot';
+    d.setAttribute('aria-label', `Aller à la diapositive ${i + 1}`);
+    d.addEventListener('click', () => goTo(i));
+    dotsBox.appendChild(d);
+  });
+  const dots = dotsBox.querySelectorAll('.dot');
+
+  function update() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === current));
+    dots.forEach((d, i) => d.classList.toggle('active', i === current));
+    counter.textContent = `${pad(current + 1)} / ${pad(total)}`;
+    prevBtn.disabled = current === 0;
+    nextLabel.textContent = current === 0 ? 'Commencer' : 'Suivant';
+    nextBtn.disabled = current === total - 1;
+  }
+
+  function goTo(i) {
+    if (i < 0 || i >= total || i === current) return;
+    const back = i < current;
+    slides.forEach((s, k) => s.classList.toggle('back', back ? k > i : k < i));
+    current = i;
+    slides[i].scrollTop = 0;
+    update();
+  }
+
+  prevBtn.addEventListener('click', () => goTo(current - 1));
+  nextBtn.addEventListener('click', () => goTo(current + 1));
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); goTo(current + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); goTo(current - 1); }
+    else if (e.key === 'Home') goTo(0);
+    else if (e.key === 'End') goTo(total - 1);
+  });
+
+  // Glisser sur cellulaire
+  let x0 = null, y0 = null;
+  deck.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+  deck.addEventListener('touchend', e => {
+    if (x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) goTo(current + (dx < 0 ? 1 : -1));
+    x0 = y0 = null;
+  });
+
+  update();
+</script>
+</body>
+</html>
